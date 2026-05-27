@@ -115,6 +115,7 @@ void *car_thread(void *arg) {
 int main(int argc, char *argv[]) {
   if (argc < 2) {
     fprintf(stderr, "Uzycie: %s <N>\n", argv[0]);
+    fprintf(stderr, "Gdzie <N> to liczba samochodow (watkow).\n");
     return 1;
   }
 
