@@ -1,7 +1,4 @@
-/*Wersja B: Ze Zmiennymi Warunkowymi (Condition Variables)
-W tej wersji rezygnujemy z semaforów na rzecz pthread_cond_t. Dzięki temu cały
-cykl sprawdzania dostępu i modyfikacji stanu zamyka się w obrębie jednego
-zabezpieczonego mutexem bloku.*/
+// Wersja B
 
 #include <pthread.h>
 #include <stdio.h>
@@ -9,7 +6,7 @@ zabezpieczonego mutexem bloku.*/
 #include <time.h>
 #include <unistd.h>
 
-// Zmienne stanu
+// zmienne stanu
 int cars_in_A;
 int waiting_A;
 int cars_in_B;
@@ -18,7 +15,7 @@ int bridge_occupied = 0;
 int bridge_car = -1;
 int bridge_dir = 0;
 
-// Narzędzia synchronizacji
+// narzędzia synchronizacji
 pthread_mutex_t print_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t bridge_cond = PTHREAD_COND_INITIALIZER;
 
@@ -41,18 +38,18 @@ void *car_thread(void *arg) {
   while (1) {
     usleep(500000 + rand() % 1000000);
     if (location == 0) {
-      // --- JAZDA Z A DO B ---
+      // JAZDA Z A DO B
       pthread_mutex_lock(&print_mutex);
       cars_in_A--;
       waiting_A++;
       print_state();
 
-      // Pętla warunkowa: czekaj dopóki most jest zajęty
+      // pętla warunkowa czekająca az most sie zwolni
       while (bridge_occupied == 1) {
         pthread_cond_wait(&bridge_cond, &print_mutex);
       }
 
-      // Most zwolniony, wjeżdżamy
+      // most zwolniony, autko wjeżdża
       waiting_A--;
       bridge_occupied = 1;
       bridge_car = id;
@@ -61,7 +58,7 @@ void *car_thread(void *arg) {
 
       pthread_mutex_unlock(&print_mutex);
 
-      usleep(800000); // Przejazd
+      usleep(800000); // przejazd
 
       pthread_mutex_lock(&print_mutex);
 
@@ -71,12 +68,12 @@ void *car_thread(void *arg) {
       cars_in_B++;
       print_state();
 
-      // Sygnalizowanie innym wątkom (samochodom), że most jest wolny
+      // sygnalizowanie innym wątkom, że most jest wolny
       pthread_cond_broadcast(&bridge_cond);
       pthread_mutex_unlock(&print_mutex);
       location = 1;
     } else {
-      // --- JAZDA Z B DO A ---
+      // JAZDA Z B DO A
       pthread_mutex_lock(&print_mutex);
       cars_in_B--;
       waiting_B++;
@@ -94,7 +91,7 @@ void *car_thread(void *arg) {
 
       pthread_mutex_unlock(&print_mutex);
 
-      usleep(800000); // Przejazd
+      usleep(800000); // przejazd
 
       pthread_mutex_lock(&print_mutex);
 
@@ -127,27 +124,27 @@ int main(int argc, char *argv[]) {
   waiting_A = 0;
   cars_in_B = 0;
   waiting_B = 0;
-  
+
   srand(time(NULL));
-  
+
   pthread_t *threads = malloc(N * sizeof(pthread_t));
-  
+
   int *ids = malloc(N * sizeof(int));
   print_state();
-  
+
   for (int i = 0; i < N; i++) {
     ids[i] = i;
     pthread_create(&threads[i], NULL, car_thread, &ids[i]);
   }
-  
+
   for (int i = 0; i < N; i++) {
     pthread_join(threads[i], NULL);
   }
-  
+
   free(threads);
   free(ids);
   pthread_mutex_destroy(&print_mutex);
   pthread_cond_destroy(&bridge_cond);
-  
+
   return 0;
 }

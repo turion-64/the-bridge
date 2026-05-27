@@ -44,7 +44,7 @@ void* car_thread(void* arg) {
         usleep(500000 + rand() % 1000000); // 0.5s do 1.5s
 
         if (location == 0) {
-            // JAZDA Z A DO B
+            // JAZDA A DO B
 
             // samochód podjeżdża do mostu i ustawia się w kolejce
             pthread_mutex_lock(&print_mutex);
