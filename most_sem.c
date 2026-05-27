@@ -21,7 +21,7 @@ int bridge_car = -1;
 int bridge_dir = 0; // 1 dla A->B, 2 dla B->A
 
 // Narzędzia synchronizacji
-pthread_mutex_t state_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t print_mutex = PTHREAD_MUTEX_INITIALIZER;
 sem_t bridge_sem;
 
 // Funkcja wypisująca stan - MUSI być wywoływana wewnątrz zamkniętego mutexa
@@ -51,35 +51,35 @@ void* car_thread(void* arg) {
             // --- JAZDA Z A DO B ---
             
             // Samochód podjeżdża do mostu i ustawia się w kolejce
-            pthread_mutex_lock(&state_mutex);
+            pthread_mutex_lock(&print_mutex);
             cars_in_A--;
             waiting_A++;
             print_state();
-            pthread_mutex_unlock(&state_mutex);
+            pthread_mutex_unlock(&print_mutex);
 
             // Czeka na zwolnienie mostu
             sem_wait(&bridge_sem);
 
             // Wjeżdża na most
-            pthread_mutex_lock(&state_mutex);
+            pthread_mutex_lock(&print_mutex);
             waiting_A--;
             bridge_occupied = 1;
             bridge_car = id;
             bridge_dir = 1;
             print_state();
-            pthread_mutex_unlock(&state_mutex);
+            pthread_mutex_unlock(&print_mutex);
 
             // Przejazd przez most
             usleep(800000); 
 
             // Zjeżdża z mostu do miasta B
-            pthread_mutex_lock(&state_mutex);
+            pthread_mutex_lock(&print_mutex);
             bridge_occupied = 0;
             bridge_car = -1;
             bridge_dir = 0;
             cars_in_B++;
             print_state();
-            pthread_mutex_unlock(&state_mutex);
+            pthread_mutex_unlock(&print_mutex);
 
             // Zwalnia most dla innych
             sem_post(&bridge_sem);
@@ -89,35 +89,35 @@ void* car_thread(void* arg) {
             // --- JAZDA Z B DO A ---
             
             // Samochód podjeżdża do mostu i ustawia się w kolejce
-            pthread_mutex_lock(&state_mutex);
+            pthread_mutex_lock(&print_mutex);
             cars_in_B--;
             waiting_B++;
             print_state();
-            pthread_mutex_unlock(&state_mutex);
+            pthread_mutex_unlock(&print_mutex);
 
             // Czeka na zwolnienie mostu
             sem_wait(&bridge_sem);
 
             // Wjeżdża na most
-            pthread_mutex_lock(&state_mutex);
+            pthread_mutex_lock(&print_mutex);
             waiting_B--;
             bridge_occupied = 1;
             bridge_car = id;
             bridge_dir = 2; // B do A
             print_state();
-            pthread_mutex_unlock(&state_mutex);
+            pthread_mutex_unlock(&print_mutex);
 
             // Przejazd przez most
             usleep(800000);
 
             // Zjeżdża z mostu do miasta A
-            pthread_mutex_lock(&state_mutex);
+            pthread_mutex_lock(&print_mutex);
             bridge_occupied = 0;
             bridge_car = -1;
             bridge_dir = 0;
             cars_in_A++;
             print_state();
-            pthread_mutex_unlock(&state_mutex);
+            pthread_mutex_unlock(&print_mutex);
 
             // Zwalnia most
             sem_post(&bridge_sem);

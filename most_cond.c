@@ -19,7 +19,7 @@ int bridge_car = -1;
 int bridge_dir = 0;
 
 // Narzędzia synchronizacji
-pthread_mutex_t monitor_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t print_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t bridge_cond = PTHREAD_COND_INITIALIZER;
 
 void print_state() {
@@ -42,14 +42,14 @@ void *car_thread(void *arg) {
     usleep(500000 + rand() % 1000000);
     if (location == 0) {
       // --- JAZDA Z A DO B ---
-      pthread_mutex_lock(&monitor_mutex);
+      pthread_mutex_lock(&print_mutex);
       cars_in_A--;
       waiting_A++;
       print_state();
 
       // Pętla warunkowa: czekaj dopóki most jest zajęty
       while (bridge_occupied == 1) {
-        pthread_cond_wait(&bridge_cond, &monitor_mutex);
+        pthread_cond_wait(&bridge_cond, &print_mutex);
       }
 
       // Most zwolniony, wjeżdżamy
@@ -59,11 +59,11 @@ void *car_thread(void *arg) {
       bridge_dir = 1;
       print_state();
 
-      pthread_mutex_unlock(&monitor_mutex);
+      pthread_mutex_unlock(&print_mutex);
 
       usleep(800000); // Przejazd
 
-      pthread_mutex_lock(&monitor_mutex);
+      pthread_mutex_lock(&print_mutex);
 
       bridge_occupied = 0;
       bridge_car = -1;
@@ -73,17 +73,17 @@ void *car_thread(void *arg) {
 
       // Sygnalizowanie innym wątkom (samochodom), że most jest wolny
       pthread_cond_broadcast(&bridge_cond);
-      pthread_mutex_unlock(&monitor_mutex);
+      pthread_mutex_unlock(&print_mutex);
       location = 1;
     } else {
       // --- JAZDA Z B DO A ---
-      pthread_mutex_lock(&monitor_mutex);
+      pthread_mutex_lock(&print_mutex);
       cars_in_B--;
       waiting_B++;
       print_state();
 
       while (bridge_occupied == 1) {
-        pthread_cond_wait(&bridge_cond, &monitor_mutex);
+        pthread_cond_wait(&bridge_cond, &print_mutex);
       }
 
       waiting_B--;
@@ -92,11 +92,11 @@ void *car_thread(void *arg) {
       bridge_dir = 2;
       print_state();
 
-      pthread_mutex_unlock(&monitor_mutex);
+      pthread_mutex_unlock(&print_mutex);
 
       usleep(800000); // Przejazd
 
-      pthread_mutex_lock(&monitor_mutex);
+      pthread_mutex_lock(&print_mutex);
 
       bridge_occupied = 0;
       bridge_car = -1;
@@ -104,7 +104,7 @@ void *car_thread(void *arg) {
       cars_in_A++;
       print_state();
       pthread_cond_broadcast(&bridge_cond);
-      pthread_mutex_unlock(&monitor_mutex);
+      pthread_mutex_unlock(&print_mutex);
       location = 0;
     }
   }
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
   
   free(threads);
   free(ids);
-  pthread_mutex_destroy(&monitor_mutex);
+  pthread_mutex_destroy(&print_mutex);
   pthread_cond_destroy(&bridge_cond);
   
   return 0;
