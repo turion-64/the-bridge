@@ -19,7 +19,7 @@ int bridge_dir = 0;
 pthread_mutex_t print_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t bridge_cond = PTHREAD_COND_INITIALIZER;
 
-void print_state() {
+void megaprint() {
   printf("A-%d %d>>> ", cars_in_A, waiting_A);
   if (bridge_occupied) {
     if (bridge_dir == 1)
@@ -42,7 +42,7 @@ void *car_thread(void *arg) {
       pthread_mutex_lock(&print_mutex);
       cars_in_A--;
       waiting_A++;
-      print_state();
+      megaprint();
 
       // pętla warunkowa czekająca az most sie zwolni
       while (bridge_occupied == 1) {
@@ -54,7 +54,7 @@ void *car_thread(void *arg) {
       bridge_occupied = 1;
       bridge_car = id;
       bridge_dir = 1;
-      print_state();
+      megaprint();
 
       pthread_mutex_unlock(&print_mutex);
 
@@ -66,9 +66,9 @@ void *car_thread(void *arg) {
       bridge_car = -1;
       bridge_dir = 0;
       cars_in_B++;
-      print_state();
+      megaprint();
 
-      // sygnalizowanie innym wątkom, że most jest wolny
+      // następuje zwolnienie blokady
       pthread_cond_broadcast(&bridge_cond);
       pthread_mutex_unlock(&print_mutex);
       location = 1;
@@ -77,7 +77,7 @@ void *car_thread(void *arg) {
       pthread_mutex_lock(&print_mutex);
       cars_in_B--;
       waiting_B++;
-      print_state();
+      megaprint();
 
       while (bridge_occupied == 1) {
         pthread_cond_wait(&bridge_cond, &print_mutex);
@@ -87,7 +87,7 @@ void *car_thread(void *arg) {
       bridge_occupied = 1;
       bridge_car = id;
       bridge_dir = 2;
-      print_state();
+      megaprint();
 
       pthread_mutex_unlock(&print_mutex);
 
@@ -99,7 +99,7 @@ void *car_thread(void *arg) {
       bridge_car = -1;
       bridge_dir = 0;
       cars_in_A++;
-      print_state();
+      megaprint();
       pthread_cond_broadcast(&bridge_cond);
       pthread_mutex_unlock(&print_mutex);
       location = 0;
@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
   pthread_t *threads = malloc(N * sizeof(pthread_t));
 
   int *ids = malloc(N * sizeof(int));
-  print_state();
+  megaprint();
 
   for (int i = 0; i < N; i++) {
     ids[i] = i;

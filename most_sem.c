@@ -21,7 +21,7 @@ pthread_mutex_t print_mutex = PTHREAD_MUTEX_INITIALIZER;
 sem_t bridge_sem;
 
 // funkcja wypisująca stan
-void print_state() {
+void megaprint() {
     printf("A-%d %d>>> ", cars_in_A, waiting_A);
     if (bridge_occupied) {
         if (bridge_dir == 1) {
@@ -50,10 +50,10 @@ void* car_thread(void* arg) {
             pthread_mutex_lock(&print_mutex);
             cars_in_A--;
             waiting_A++;
-            print_state();
+            megaprint();
             pthread_mutex_unlock(&print_mutex);
 
-            // czeka na zwolnienie mostu
+            // czeka na zwolnienie blokady
             sem_wait(&bridge_sem);
 
             // wjeżdża na most
@@ -62,7 +62,7 @@ void* car_thread(void* arg) {
             bridge_occupied = 1;
             bridge_car = id;
             bridge_dir = 1;
-            print_state();
+            megaprint();
             pthread_mutex_unlock(&print_mutex);
 
             // przejazd przez most
@@ -74,10 +74,10 @@ void* car_thread(void* arg) {
             bridge_car = -1;
             bridge_dir = 0;
             cars_in_B++;
-            print_state();
+            megaprint();
             pthread_mutex_unlock(&print_mutex);
 
-            // zwalnia most dla innych
+            // następuje zwolnienie blokady
             sem_post(&bridge_sem);
             location = 1;
 
@@ -88,10 +88,10 @@ void* car_thread(void* arg) {
             pthread_mutex_lock(&print_mutex);
             cars_in_B--;
             waiting_B++;
-            print_state();
+            megaprint();
             pthread_mutex_unlock(&print_mutex);
 
-            // czeka na zwolnienie mostu
+            // czeka na zwolnienie blokady
             sem_wait(&bridge_sem);
 
             // wjeżdża na most
@@ -100,7 +100,7 @@ void* car_thread(void* arg) {
             bridge_occupied = 1;
             bridge_car = id;
             bridge_dir = 2; // B do A
-            print_state();
+            megaprint();
             pthread_mutex_unlock(&print_mutex);
 
             // przejazd przez most
@@ -112,10 +112,10 @@ void* car_thread(void* arg) {
             bridge_car = -1;
             bridge_dir = 0;
             cars_in_A++;
-            print_state();
+            megaprint();
             pthread_mutex_unlock(&print_mutex);
 
-            // zwalnia most
+            // następuje zwolnienie blokady
             sem_post(&bridge_sem);
             location = 0;
         }
@@ -131,23 +131,23 @@ int main(int argc, char* argv[]) {
     int N = atoi(argv[1]);
     if (N <= 0) goto err;
 
-    // inicjalizacja stanu
+    // domyślny stan to 5 aut w mieście A
     cars_in_A = N;
     waiting_A = 0;
     cars_in_B = 0;
     waiting_B = 0;
 
     srand(time(NULL));
-    sem_init(&bridge_sem, 0, 1); // semafor o wartości 1 (pojemność mostu)
+    sem_init(&bridge_sem, 0, 1); // pojemność mostu 1
 
     pthread_t* threads = malloc(N * sizeof(pthread_t));
     int* ids = malloc(N * sizeof(int));
 
     // wypisanie stanu początkowego
-    print_state();
+    megaprint();
 
     for (int i = 0; i < N; i++) {
-        ids[i] = i; // identyfikatory od 0 do N-1
+        ids[i] = i; // samochody numerowane są od zera
         pthread_create(&threads[i], NULL, car_thread, &ids[i]);
     }
 
