@@ -8,11 +8,11 @@
 #include <time.h>
 
 // zmienne stanu
-int cars_in_A;
+int cars_A;
 int waiting_A;
-int cars_in_B;
+int cars_B;
 int waiting_B;
-int bridge_occupied = 0;
+int occupied = 0;
 int bridge_car = -1;
 int bridge_dir = 0; // 1 dla A->B, 2 dla B->A, 0 kiedy nikogo nie ma na moście
 
@@ -22,8 +22,8 @@ sem_t bridge_sem;
 
 // funkcja wypisująca stan
 void megaprint() {
-    printf("A-%d %d>>> ", cars_in_A, waiting_A);
-    if (bridge_occupied) {
+    printf("A-%d %d>>> ", cars_A, waiting_A);
+    if (occupied) {
         if (bridge_dir == 1) {
             printf("[>> %d >>]", bridge_car);
         } else {
@@ -32,7 +32,7 @@ void megaprint() {
     } else {
         printf("[   --   ]");
     }
-    printf(" <<<%d %d-B\n", waiting_B, cars_in_B);
+    printf(" <<<%d %d-B\n", waiting_B, cars_B);
 }
 
 void* car_thread(void* arg) {
@@ -44,11 +44,12 @@ void* car_thread(void* arg) {
         usleep(500000 + rand() % 1000000); // 0.5s do 1.5s
 
         if (location == 0) {
-            // JAZDA A DO B
+            // a -> b
 
             // samochód podjeżdża do mostu i ustawia się w kolejce
+            // blokujemy mutex i zmieniamy wartości
             pthread_mutex_lock(&print_mutex);
-            cars_in_A--;
+            cars_A--;
             waiting_A++;
             megaprint();
             pthread_mutex_unlock(&print_mutex);
@@ -59,7 +60,7 @@ void* car_thread(void* arg) {
             // wjeżdża na most
             pthread_mutex_lock(&print_mutex);
             waiting_A--;
-            bridge_occupied = 1;
+            occupied = 1;
             bridge_car = id;
             bridge_dir = 1;
             megaprint();
@@ -70,10 +71,10 @@ void* car_thread(void* arg) {
 
             // zjeżdża z mostu do miasta B
             pthread_mutex_lock(&print_mutex);
-            bridge_occupied = 0;
+            occupied = 0;
             bridge_car = -1;
             bridge_dir = 0;
-            cars_in_B++;
+            cars_B++;
             megaprint();
             pthread_mutex_unlock(&print_mutex);
 
@@ -82,11 +83,11 @@ void* car_thread(void* arg) {
             location = 1;
 
         } else {
-            // JAZDA Z B DO A
+            // b -> a
 
             // samochód podjeżdża do mostu i ustawia się w kolejce
             pthread_mutex_lock(&print_mutex);
-            cars_in_B--;
+            cars_B--;
             waiting_B++;
             megaprint();
             pthread_mutex_unlock(&print_mutex);
@@ -97,7 +98,7 @@ void* car_thread(void* arg) {
             // wjeżdża na most
             pthread_mutex_lock(&print_mutex);
             waiting_B--;
-            bridge_occupied = 1;
+            occupied = 1;
             bridge_car = id;
             bridge_dir = 2; // B do A
             megaprint();
@@ -108,10 +109,10 @@ void* car_thread(void* arg) {
 
             // zjeżdża z mostu do miasta A
             pthread_mutex_lock(&print_mutex);
-            bridge_occupied = 0;
+            occupied = 0;
             bridge_car = -1;
             bridge_dir = 0;
-            cars_in_A++;
+            cars_A++;
             megaprint();
             pthread_mutex_unlock(&print_mutex);
 
@@ -132,9 +133,9 @@ int main(int argc, char* argv[]) {
     if (N <= 0) goto err;
 
     // domyślny stan to 5 aut w mieście A
-    cars_in_A = N;
+    cars_A = N;
     waiting_A = 0;
-    cars_in_B = 0;
+    cars_B = 0;
     waiting_B = 0;
 
     srand(time(NULL));
