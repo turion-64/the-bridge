@@ -125,13 +125,11 @@ void* car_thread(void* arg) {
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        fprintf(stderr, "Uzycie: %s <N>\n", argv[0]);
-        fprintf(stderr, "Gdzie <N> to liczba samochodow (watkow).\n");
-        return 1;
+        goto err;
     }
 
     int N = atoi(argv[1]);
-    if (N <= 0) N = 5; // domyślna wartość
+    if (N <= 0) goto err;
 
     // inicjalizacja stanu
     cars_in_A = N;
@@ -162,4 +160,9 @@ int main(int argc, char* argv[]) {
     free(ids);
     sem_destroy(&bridge_sem);
     return 0;
+
+err:
+    fprintf(stderr, "Uzycie: %s <N>\n", argv[0]);
+    fprintf(stderr, "Gdzie <N> to liczba samochodow (watkow).\n");
+    return 1;
 }

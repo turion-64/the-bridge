@@ -111,14 +111,11 @@ void *car_thread(void *arg) {
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
-    fprintf(stderr, "Uzycie: %s <N>\n", argv[0]);
-    fprintf(stderr, "Gdzie <N> to liczba samochodow (watkow).\n");
-    return 1;
+    goto err;
   }
 
   int N = atoi(argv[1]);
-  if (N <= 0)
-    N = 5;
+  if (N <= 0) goto err;
 
   cars_in_A = N;
   waiting_A = 0;
@@ -147,4 +144,9 @@ int main(int argc, char *argv[]) {
   pthread_cond_destroy(&bridge_cond);
 
   return 0;
+
+err:
+  fprintf(stderr, "Uzycie: %s <N>\n", argv[0]);
+  fprintf(stderr, "Gdzie <N> to liczba samochodow (watkow).\n");
+  return 1;
 }
