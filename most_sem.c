@@ -132,7 +132,6 @@ int main(int argc, char* argv[]) {
     int N = atoi(argv[1]);
     if (N <= 0) goto err;
 
-    // domyślny stan to 5 aut w mieście A
     cars_A = N;
     waiting_A = 0;
     cars_B = 0;
