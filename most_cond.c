@@ -32,7 +32,7 @@ void megaprint() {
   printf(" <<<%d %d-B\n", waiting_B, cars_B);
 }
 
-void *car_thread(void *arg) {
+void *car(void *arg) {
   int id = *(int *)arg;
   int location = 0;
   while (1) {
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
 
   for (int i = 0; i < N; i++) {
     ids[i] = i;
-    pthread_create(&threads[i], NULL, car_thread, &ids[i]);
+    pthread_create(&threads[i], NULL, car, &ids[i]);
   }
 
   for (int i = 0; i < N; i++) {
