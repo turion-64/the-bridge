@@ -71,8 +71,8 @@ void *car_thread(void *arg) {
       cars_in_B++;
       print_state();
 
-      // Sygnalizowanie innym wątkom (samochodom), że most jest
-      wolny pthread_cond_broadcast(&bridge_cond);
+      // Sygnalizowanie innym wątkom (samochodom), że most jest wolny
+      pthread_cond_broadcast(&bridge_cond);
       pthread_mutex_unlock(&monitor_mutex);
       location = 1;
     } else {
