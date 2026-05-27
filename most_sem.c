@@ -16,7 +16,7 @@ int occupied = 0;
 int bridge_car = -1;
 int bridge_dir = 0; // 1 dla A->B, 2 dla B->A, 0 kiedy nikogo nie ma na moście
 
-// narzędzia synchronizacji
+// mutex i semafor
 pthread_mutex_t print_mutex = PTHREAD_MUTEX_INITIALIZER;
 sem_t bridge_sem;
 
